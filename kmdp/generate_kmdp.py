@@ -5,6 +5,9 @@ Generates KMDP from DP & PoS tagging results.
 
 import argparse
 import json
+import logging
+from collections import Counter
+from datetime import datetime
 from tqdm import tqdm
 
 from dependency import kmdp_rules, kmdp_generate
@@ -89,6 +92,20 @@ def format_morph(morph):
   return morph['text'] + '/' + morph['pos_tag']
       
 def main(args):
+  # Configurate loggers
+  error_handler = logging.FileHandler(args.error_file, 'w', encoding='UTF-8')
+  error_logger = logging.getLogger('error')
+  error_logger.addHandler(error_handler)
+  error_logger.setLevel(logging.INFO)
+
+  if args.dst_file == '-':
+    result_handler = logging.StreamHandler()
+  else:
+    result_handler = logging.FileHandler(args.dst_file, 'w', encoding='UTF-8')
+  result_logger = logging.getLogger('result')
+  result_logger.addHandler(result_handler)
+  result_logger.setLevel(logging.INFO)
+
   # Remove excluded rules
   if args.exclude:
     for alias in args.exclude:
@@ -98,6 +115,7 @@ def main(args):
     inputs = json.load(src_file)
   
   errors = []
+  error_rules = Counter()
 
   for sentence in tqdm(inputs):
     try:
@@ -111,45 +129,45 @@ def main(args):
         interactive_ui(e)
   
   for error in errors:
-    print(error['sentence']['text'])
-    print('  rule:     {}'.format(error['environment']['rule']))
-    print('  msg:      {}'.format(error['environment']['msg']))
-    print('  dep_wp:   {}'.format(' + '.join([format_morph(morph) for morph in error['environment']['dep_wp']])))
-    print('  dep_wp_i: {}'.format(error['environment']['dep_wp_i']))
-    print('  head_wp:  {}'.format(' + '.join([format_morph(morph) for morph in error['environment']['head_wp']])))
-    print('  dp_label: {}'.format(error['environment']['dp_label']))
-    print('')
+    error_logger.info(error['sentence']['text'])
+    error_logger.info('  rule:     %s', error['environment']['rule'])
+    error_logger.info('  msg:      %s', error['environment']['msg'])
+    error_logger.info('  dep_wp:   %s', ' + '.join([format_morph(morph) for morph in error['environment']['dep_wp']]))
+    error_logger.info('  dep_wp_i: %d', error['environment']['dep_wp_i'])
+    error_logger.info('  head_wp:  %s', ' + '.join([format_morph(morph) for morph in error['environment']['head_wp']]))
+    error_logger.info('  dp_label: %s', error['environment']['dp_label'])
+    error_logger.info('')
+    error_rules.update([error['environment']['rule']])
+  
+  error_logger.info('Stats')
+  error_logger.info('  total errors: %d / %d', len(errors), len(inputs))
 
-  if args.simple:
-    # write into simple CoNLL-X style format(for visualization)
-    kmdp_string = ''
-    for sentence in inputs:
-      if 'kmdp' not in sentence:
-        continue
-      text = sentence['text']
-      pos = ' '.join(['+'.join([format_morph(morph) for morph in word]) for word in sentence['pos']])
-      kmdp_arcs = ''
-      pos_flatten = [{'id': 0, 'text': '[ROOT]', 'pos_tag': '[ROOT]'}]
-      for word in sentence['pos']:
-        pos_flatten.extend(word)
-      for kmdp_arc in sentence['kmdp']:
-        kmdp_arcs += '{}\t->\t{}\t{: <5}\n'.format(format_morph(pos_flatten[kmdp_arc['dep']]), format_morph(pos_flatten[kmdp_arc['head']]), kmdp_arc['label'])
+  error_logger.info('')
+  error_logger.info('Errors per rules:')
+  for rule, count in error_rules.most_common():
+    error_logger.info('  %s : %d / %d', rule, count, len(errors))
+
+  # if args.simple:
+  #   # write into simple CoNLL-X style format(for visualization)
+  #   kmdp_string = ''
+  #   for sentence in inputs:
+  #     if 'kmdp' not in sentence:
+  #       continue
+  #     text = sentence['text']
+  #     pos = ' '.join(['+'.join([format_morph(morph) for morph in word]) for word in sentence['pos']])
+  #     kmdp_arcs = ''
+  #     pos_flatten = [{'id': 0, 'text': '[ROOT]', 'pos_tag': '[ROOT]'}]
+  #     for word in sentence['pos']:
+  #       pos_flatten.extend(word)
+  #     for kmdp_arc in sentence['kmdp']:
+  #       kmdp_arcs += '{}\t->\t{}\t{: <5}\n'.format(format_morph(pos_flatten[kmdp_arc['dep']]), format_morph(pos_flatten[kmdp_arc['head']]), kmdp_arc['label'])
       
-      # Update final string
-      kmdp_string += '; ' + text + '\n# ' + pos + '\n' + kmdp_arcs + '\n'
+  #     # Update final string
+  #     kmdp_string += '; ' + text + '\n# ' + pos + '\n' + kmdp_arcs + '\n'
 
-
-    if args.dst_file == '-':
-      print(kmdp_string)
-    else:
-      with open(args.dst_file, 'w', encoding='UTF-8') as dst_file:
-        dst_file.write(kmdp_string)
-  else:
-    if args.dst_file == '-':
-      print(json.dumps(inputs, indent=4, ensure_ascii=False))
-    else:
-      with open(args.dst_file, 'w', encoding='UTF-8') as dst_file:
-        json.dump(inputs, dst_file, indent=4, ensure_ascii=False)
+  #   result_logger.info(kmdp_string)
+  # else:
+  #   result_logger.info(json.dumps(inputs, indent=4, ensure_ascii=False))
 
 
 def cli_main():
@@ -160,8 +178,8 @@ def cli_main():
   parser.add_argument('--dst-file', type=str, default='-', help='File to store results. Default: stdout')
 
   # Options to detect and fix unexpected situations.
-  parser.add_argument('--interactive', action='store_true', help='if any error is raised, interactively parse.')
-  parser.add_argument('--error-file', type=str, help='if any error is raised, log situations.')
+  parser.add_argument('--interactive', action='store_true', help='NOT IMPLEMENTED If any error is raised, interactively parse.')
+  parser.add_argument('--error-file', type=str, default='error_'+datetime.now().strftime('%y%m%d_%H%M%S')+'.log', help='if any error is raised, log errors to file.')
   parser.add_argument('--exclude', '-x', type=str, nargs='*', action='append', help='Rule name(alias) to exclude from current run.')
   parser.add_argument('--simple', action='store_true', help='Only print KMDP results, not full VictorNLP format corpus.')
 
