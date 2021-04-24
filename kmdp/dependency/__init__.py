@@ -8,7 +8,7 @@ Manage registered dependency rules.
 _kmdp_rule_dict = {}
 _kmdp_precedence = {}
 
-def register_kmdp_rule(cls, alias, dominees):
+def register_kmdp_rule(alias, dominees):
   """
   Decorator to manage rule functions.
 
@@ -16,8 +16,10 @@ def register_kmdp_rule(cls, alias, dominees):
   @param alias An alias for `fn`. This alias should be given to call the rule class.
   @param dominees alias for other rule class that `cls` dominates.
   """
-  _kmdp_rule_dict[alias] = cls
-  _kmdp_precedence[alias] = dominees
+  def decorator(cls):
+    _kmdp_rule_dict[alias] = cls
+    _kmdp_precedence[alias] = dominees
+  return decorator
 
 # Import and organize rule_based dependency functions.
 # All rule functions should use @register_kmdp_rule decorator to be properly accessed.

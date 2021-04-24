@@ -25,4 +25,4 @@ def topological_sort(_kmdp_precedence):
 
   if len(kmdp_rules) != len(_kmdp_precedence.keys()):
     raise ValueError(str(_kmdp_precedence) + "\nPrecedence of rules form a cycle!")
-  return kmdp_rules
+  return reversed(kmdp_rules)
