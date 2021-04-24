@@ -16,7 +16,10 @@ class KMDPRuleBase():
   Base rule structure for KMDP.
   """
 
-  @classmethod
+  def __init_subclass__(cls, *args, **kwargs):
+    cls.generate = classmethod(cls.generate)
+    cls.recover = classmethod(cls.recover)
+
   def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
     """
     Generate KMDP from given PoS and DP results.
@@ -85,13 +88,13 @@ class DefaultInterRule(KMDPRuleBase):
 
   def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
     dep_morph = dep_wp[dep_wp_i]
-    if dep_morph['pos_tag'] not in heads['all_heads']:
+    if dep_morph['pos_tag'] not in label2head['all_heads']:
       # If non-head PoS, do nothing.
       return None
     
     # If head PoS, find next head morpheme.
-    for i in range(dep_wp_i, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in heads['all_heads']:
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
         # Intra-WP dependency
         return None
     
@@ -99,23 +102,23 @@ class DefaultInterRule(KMDPRuleBase):
     # Inter-WP dependency
     # Return the last head morpheme from the head_wp.
     for i in reversed(range(len(head_wp))):
-      if head_wp[i]['pos_tag'] in heads['all_heads']:
+      if head_wp[i]['pos_tag'] in label2head['all_heads']:
         return {
           'dep': dep_morph['id'],
           'head': head_wp[i]['id'],
-          'label': dp_label
+          'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
         }
     raise KMDPGenerateException('default_inter', 'No head morpheme in head_wp', dep_wp, dep_wp_i, head_wp, dp_label)
   
   def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
     dep_morph = dep_wp[dep_wp_i]
-    if dep_morph['pos_tag'] not in heads['all_heads']:
+    if dep_morph['pos_tag'] not in label2head['all_heads']:
       # If non-head PoS, do nothing.
       return None
     
     # If head PoS, find next head morpheme.
-    for i in range(dep_wp_i, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in heads['all_heads']:
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
         # Intra-WP dependency
         return None
     
@@ -140,13 +143,13 @@ class DefaultIntraRule(KMDPIntraWPRuleBase):
 
   def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
     dep_morph = dep_wp[dep_wp_i]
-    if dep_morph['pos_tag'] not in heads['all_heads']:
+    if dep_morph['pos_tag'] not in label2head['all_heads']:
       # If non-head PoS, do nothing.
       return None
     
     # If head PoS, find next head morpheme.
-    for i in range(dep_wp_i, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in heads['all_heads']:
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
         # Intra-WP dependency
         return {
           'dep': dep_morph['id'],

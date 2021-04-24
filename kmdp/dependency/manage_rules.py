@@ -20,9 +20,9 @@ def topological_sort(_kmdp_precedence):
         precedence_left[current] -= 1
     # update queue
     for alias, edges in precedence_left.items():
-      if edges == 0:
+      if edges == 0 and (alias not in queue and alias not in kmdp_rules):
         queue.append(alias)
 
   if len(kmdp_rules) != len(_kmdp_precedence.keys()):
     raise ValueError(str(_kmdp_precedence) + "\nPrecedence of rules form a cycle!")
-  return reversed(kmdp_rules)
+  return list(reversed(kmdp_rules))

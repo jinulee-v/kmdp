@@ -6,10 +6,10 @@ provide interfaces to access rules
 from . import _kmdp_rule_dict
 
 def kmdp_generate(alias, dep_wp, dep_wp_i, head_wp, dp_label):
-  return _kmdp_rule_dict[alias].generate(*args)
+  return _kmdp_rule_dict[alias].generate(dep_wp, dep_wp_i, head_wp, dp_label)
 
 def kmdp_recover(alias, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
-  return _kmdp_rule_dict[alias].recover(*args)
+  return _kmdp_rule_dict[alias].recover(dep_wp_i, head_wp, head_wp_i, kmdp_label)
 
 
 class KMDPGenerateException(Exception):
@@ -18,7 +18,7 @@ class KMDPGenerateException(Exception):
 
   Exception class when generate() produces error(unexpected behavior).
   """
-  def __init__(rule, msg, dep_wp, dep_wp_i, head_wp, dp_label):
+  def __init__(self, rule, msg, dep_wp, dep_wp_i, head_wp, dp_label):
 
     super(KMDPGenerateException, self).__init__(msg)
 
@@ -29,9 +29,10 @@ class KMDPGenerateException(Exception):
     self.dp_label = dp_label
     self.environment = {
       'rule': rule,
-      'dep_wp': dep_wp
-      'dep_wp_i': dep_wp_i
-      'head_wp': head_wp
+      'msg': msg,
+      'dep_wp': dep_wp,
+      'dep_wp_i': dep_wp_i,
+      'head_wp': head_wp,
       'dp_label': dp_label
     }
   
@@ -42,7 +43,7 @@ class KMDPRecoverException(Exception):
 
   Exception class when recover() produces error(unexpected behavior).
   """
-  def __init__(cls, msg, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
+  def __init__(self, name, msg, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
 
     super(KMDPRecoverException, self).__init__(msg)
 
@@ -54,10 +55,11 @@ class KMDPRecoverException(Exception):
     self.kmdp_label = kmdp_label
     self.environment = {
       'rule': rule,
-      'dep_wp': dep_wp
-      'dep_wp_i': dep_wp_i
-      'head_wp': head_wp
-      'head_wp_i': head_wp_i
+      'msg': msg,
+      'dep_wp': dep_wp,
+      'dep_wp_i': dep_wp_i,
+      'head_wp': head_wp,
+      'head_wp_i': head_wp_i,
       'kmdp_label': kmdp_label
     }
   
