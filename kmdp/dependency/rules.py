@@ -9,6 +9,7 @@ def function(dep_word_phrase, )
 from . import register_kmdp_rule
 
 from .lexicals import head2label, label2head, dp_labels
+from .interface import KMDPGenerateException
 
 class KMDPRuleBase():
   """
@@ -104,7 +105,7 @@ class DefaultInterRule(KMDPRuleBase):
           'head': head_wp[i]['id'],
           'label': dp_label
         }
-    raise ValueError('No head morpheme in head_wp!')
+    raise KMDPGenerateException('default_inter', 'No head morpheme in head_wp', dep_wp, dep_wp_i, head_wp, dp_label)
   
   def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
     dep_morph = dep_wp[dep_wp_i]
@@ -122,7 +123,7 @@ class DefaultInterRule(KMDPRuleBase):
       return None
 
     if kmdp_label not in dp_labels:
-      raise ValueError('Invalid DP label: {}'.format(kmdp_label))
+      raise KMDPRecoverException('default_inter', 'Invalid DP label: {}'.format(kmdp_label), dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label)
 
     return {
       'dep': None,
