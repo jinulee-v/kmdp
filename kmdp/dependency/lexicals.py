@@ -75,4 +75,4 @@ dp_labels = _labels['dp_labels']
 
 # SH Adjectives
 
-SH_adjectives = ['故', '新', '反']
+SH_adjectives = ['故', '新']

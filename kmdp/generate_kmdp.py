@@ -109,7 +109,8 @@ def main(args):
   # Remove excluded rules
   if args.exclude:
     for alias in args.exclude:
-      kmdp_rules.remove(alias)
+      kmdp_rules.remove(alias[0])
+  print(kmdp_rules)
 
   with open(args.src_file, 'r', encoding='UTF-8') as src_file:
     inputs = json.load(src_file)
@@ -147,27 +148,27 @@ def main(args):
   for rule, count in error_rules.most_common():
     error_logger.info('  %s : %d / %d', rule, count, len(errors))
 
-  # if args.simple:
-  #   # write into simple CoNLL-X style format(for visualization)
-  #   kmdp_string = ''
-  #   for sentence in inputs:
-  #     if 'kmdp' not in sentence:
-  #       continue
-  #     text = sentence['text']
-  #     pos = ' '.join(['+'.join([format_morph(morph) for morph in word]) for word in sentence['pos']])
-  #     kmdp_arcs = ''
-  #     pos_flatten = [{'id': 0, 'text': '[ROOT]', 'pos_tag': '[ROOT]'}]
-  #     for word in sentence['pos']:
-  #       pos_flatten.extend(word)
-  #     for kmdp_arc in sentence['kmdp']:
-  #       kmdp_arcs += '{}\t->\t{}\t{: <5}\n'.format(format_morph(pos_flatten[kmdp_arc['dep']]), format_morph(pos_flatten[kmdp_arc['head']]), kmdp_arc['label'])
+  if args.simple:
+    # write into simple CoNLL-X style format(for visualization)
+    kmdp_string = ''
+    for sentence in inputs:
+      if 'kmdp' not in sentence:
+        continue
+      text = sentence['text']
+      pos = ' '.join(['+'.join([format_morph(morph) for morph in word]) for word in sentence['pos']])
+      kmdp_arcs = ''
+      pos_flatten = [{'id': 0, 'text': '[ROOT]', 'pos_tag': '[ROOT]'}]
+      for word in sentence['pos']:
+        pos_flatten.extend(word)
+      for kmdp_arc in sentence['kmdp']:
+        kmdp_arcs += '{}\t->\t{}\t{: <5}\n'.format(format_morph(pos_flatten[kmdp_arc['dep']]), format_morph(pos_flatten[kmdp_arc['head']]), kmdp_arc['label'])
       
-  #     # Update final string
-  #     kmdp_string += '; ' + text + '\n# ' + pos + '\n' + kmdp_arcs + '\n'
+      # Update final string
+      kmdp_string += '; ' + text + '\n# ' + pos + '\n' + kmdp_arcs + '\n'
 
-  #   result_logger.info(kmdp_string)
-  # else:
-  #   result_logger.info(json.dumps(inputs, indent=4, ensure_ascii=False))
+    result_logger.info(kmdp_string)
+  else:
+    result_logger.info(json.dumps(inputs, indent=4, ensure_ascii=False))
 
 
 def cli_main():

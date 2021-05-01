@@ -8,7 +8,7 @@ def function(dep_word_phrase, )
 
 from . import register_kmdp_rule
 
-from .lexicals import head2label, label2head, dp_labels
+from .lexicals import *
 from .interface import KMDPGenerateException
 
 class KMDPRuleBase():
@@ -178,7 +178,7 @@ class AdjectiveSHRule(KMDPRuleBase):
     
     # If head PoS, find next head morpheme.
     for i in range(dep_wp_i+1, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in label2head['NP_heads']:
+      if dep_wp[i]['pos_tag'] in label2head['NP']:
         # Intra-WP dependency
         return {
           'dep': dep_morph['id'],
