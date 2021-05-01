@@ -3,7 +3,7 @@
 provide interfaces to access rules
 """
 
-from . import _kmdp_rule_dict
+from . import _kmdp_rule_dict, _kmdp_precedence
 
 def kmdp_generate(alias, dep_wp, dep_wp_i, head_wp, dp_label):
   return _kmdp_rule_dict[alias].generate(dep_wp, dep_wp_i, head_wp, dp_label)
@@ -11,8 +11,22 @@ def kmdp_generate(alias, dep_wp, dep_wp_i, head_wp, dp_label):
 def kmdp_recover(alias, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
   return _kmdp_rule_dict[alias].recover(dep_wp_i, head_wp, head_wp_i, kmdp_label)
 
+
 def get_doc(alias):
+  """
+  Returns docstring of the rule.
+  """
   return _kmdp_rule_dict[alias].__doc__
+
+def find_dominated_rules(alias):
+  """
+  Returns all successor(overrided) rules of a given rule.
+  Performs DFS search within the tree.
+  """
+  rules = [alias]
+  for dominee in _kmdp_precedence[alias]:
+    rules.extend(find_dominated_rules(dominee))
+  return rules
 
 class KMDPGenerateException(Exception):
   """

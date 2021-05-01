@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from dependency import kmdp_rules, kmdp_generate
 from dependency.lexicals import label2head
-from dependency.interface import KMDPGenerateException, get_doc
+from dependency.interface import KMDPGenerateException, get_doc, find_dominated_rules
 
 def generate_rule_based_KMDP(sentence):
   """
@@ -60,13 +60,20 @@ def generate_rule_based_KMDP(sentence):
     for j in range(len(dep_wp)):
       # for each morpheme,
 
+      find_rule = True
+      applied_rule = None
       for rule in kmdp_rules:
         kmdp_arc = kmdp_generate(rule, dep_wp, j, head_wp, arc['label'])
-        if kmdp_arc:
+        if kmdp_arc and find_rule:
           # if any valid result,
           if dep_wp[j]['pos_tag'] not in label2head['all_heads']:
             raise KMDPGenerateException(rule, 'Non-head morphemes should not have heads.', dep_wp, j, head_wp, arc['label'])
-          break
+          find_rule = False
+          applied_rule = rule
+          safe_rules = find_dominated_rules(rule)
+        elif kmdp_arc and not find_rule and rule not in safe_rules:
+          # If two un-dominated rules collide:
+          raise KMDPGenerateException(rule, 'Rule collision with {}'.format(applied_rule), dep_wp, j, head_wp, arc['label'])
       
       if not kmdp_arc:
         # Only non-head morpheme reach here
