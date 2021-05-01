@@ -222,7 +222,7 @@ class AdjectiveSHRule(KMDPRuleBase):
     }
 
 
-@register_kmdp_rule("VP_arguments", ['default_inter', 'default_intra'])
+@register_kmdp_rule("VP_arguments", ['default_inter'])
 class VPArgumentsRule(KMDPRuleBase):
   """
   Rules for Inter-WP dependencies where head is VP.
@@ -231,9 +231,14 @@ class VPArgumentsRule(KMDPRuleBase):
   def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
     dep_morph = dep_wp[dep_wp_i]
     if dep_morph['pos_tag'] not in label2head['all_heads']:
-      # If not adjective-like chinese character, do nothing.
       return None
 
+    # If head PoS, find next head morpheme.
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+        # Intra-WP dependency
+        return None
+    
     for i in range(len(head_wp)):
       if head_wp[i]['pos_tag'] in label2head['VP']:
         return {
@@ -250,6 +255,12 @@ class VPArgumentsRule(KMDPRuleBase):
       # If not adjective-like chinese character, do nothing.
       return None
 
+    # If head PoS, find next head morpheme.
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+        # Intra-WP dependency
+        return None
+    
     if head_wp[head_wp_i]['pos_tag'] in label2head['VP']:
       return {
         'dep': None,

@@ -60,18 +60,24 @@ def generate_rule_based_KMDP(sentence):
     for j in range(len(dep_wp)):
       # for each morpheme,
 
-      find_rule = True
+      # kmdp_arc: arc information determined
+      # applied_rule: rule applied
+      # safe_rules: dominees of the applied rule
+      kmdp_arc = None
       applied_rule = None
+      safe_rules = []
       for rule in kmdp_rules:
+        if kmdp_arc:
+          continue
         kmdp_arc = kmdp_generate(rule, dep_wp, j, head_wp, arc['label'])
-        if kmdp_arc and find_rule:
+        if kmdp_arc and not applied_rule:
           # if any valid result,
           if dep_wp[j]['pos_tag'] not in label2head['all_heads']:
             raise KMDPGenerateException(rule, 'Non-head morphemes should not have heads.', dep_wp, j, head_wp, arc['label'])
-          find_rule = False
+          # update value
           applied_rule = rule
           safe_rules = find_dominated_rules(rule)
-        elif kmdp_arc and not find_rule and rule not in safe_rules:
+        elif kmdp_arc and applied_rule and rule not in safe_rules:
           # If two un-dominated rules collide:
           raise KMDPGenerateException(rule, 'Rule collision with {}'.format(applied_rule), dep_wp, j, head_wp, arc['label'])
       
