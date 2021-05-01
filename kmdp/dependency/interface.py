@@ -11,6 +11,8 @@ def kmdp_generate(alias, dep_wp, dep_wp_i, head_wp, dp_label):
 def kmdp_recover(alias, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
   return _kmdp_rule_dict[alias].recover(dep_wp_i, head_wp, head_wp_i, kmdp_label)
 
+def get_doc(alias):
+  return _kmdp_rule_dict[alias].__doc__
 
 class KMDPGenerateException(Exception):
   """

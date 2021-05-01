@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from dependency import kmdp_rules, kmdp_generate
 from dependency.lexicals import label2head
-from dependency.interface import KMDPGenerateException
+from dependency.interface import KMDPGenerateException, get_doc
 
 def generate_rule_based_KMDP(sentence):
   """
@@ -110,7 +110,13 @@ def main(args):
   if args.exclude:
     for alias in args.exclude:
       kmdp_rules.remove(alias[0])
-  print(kmdp_rules)
+  
+  print('-'*80)
+  print('Applied rules\n')
+  for i, rule in enumerate(kmdp_rules):
+    print(str(i+1) + '. ' + rule + ':')
+    print(get_doc(rule))
+  print('-'*80)
 
   with open(args.src_file, 'r', encoding='UTF-8') as src_file:
     inputs = json.load(src_file)
