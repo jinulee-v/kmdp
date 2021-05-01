@@ -166,8 +166,6 @@ class AdjectiveSHRule(KMDPRuleBase):
 
   - '故/SH' = 'dead'
   - '新/SH' = 'new'
-  - '反/SH' = 'anti-'
-
   """
 
   def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
@@ -208,7 +206,11 @@ class AdjectiveSHRule(KMDPRuleBase):
     for i in range(dep_wp_i+1, len(dep_wp)):
       if dep_wp[i]['pos_tag'] in label2head['all_heads']:
         # Intra-WP dependency
-        return None
+        return {
+          'dep': None,
+          'head': None,
+          'label': 'XPN'
+        }
 
     if kmdp_label not in dp_labels:
       raise KMDPRecoverException('default_inter', 'Invalid DP label: {}'.format(kmdp_label), dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label)
@@ -216,5 +218,42 @@ class AdjectiveSHRule(KMDPRuleBase):
     return {
       'dep': None,
       'head': None,
-      'label': 'NP' # for 
+      'label': 'NP'
     }
+
+
+@register_kmdp_rule("VP_arguments", ['default_inter', 'default_intra'])
+class VPArgumentsRule(KMDPRuleBase):
+  """
+  Rules for Inter-WP dependencies where head is VP.
+  """
+
+  def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] not in label2head['all_heads']:
+      # If not adjective-like chinese character, do nothing.
+      return None
+
+    for i in range(len(head_wp)):
+      if head_wp[i]['pos_tag'] in label2head['VP']:
+        return {
+          'dep': dep_morph['id'],
+          'head': head_wp[i]['id'],
+          'label': dp_label
+        }
+    
+    return None
+  
+  def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] not in label2head['all_heads']:
+      # If not adjective-like chinese character, do nothing.
+      return None
+
+    if head_wp[head_wp_i]['pos_tag'] in label2head['VP']:
+      return {
+        'dep': None,
+        'head': None,
+        'label': kmdp_label
+      }
+    
