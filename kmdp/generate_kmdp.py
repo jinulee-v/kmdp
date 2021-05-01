@@ -186,6 +186,76 @@ def main(args):
       kmdp_string += '; ' + text + '\n# ' + pos + '\n' + kmdp_arcs + '\n'
 
     result_logger.info(kmdp_string)
+
+  elif args.brat:
+    # write into brat format(for brat visualization)
+    divide_wp = '  ▁  '
+    divide_morph = '  '
+
+    # txt_i: Current character index
+    txt_i = 0
+    kmdp_string = ''
+    # span_i, arc_i: Current annotation index
+    span_i = 1
+    arc_i = 1
+    annotation = []
+
+    page_i = 1
+    for sent_i, sentence in enumerate(inputs):
+      # Skip if generated error
+      if 'kmdp' not in sentence:
+        continue
+    
+      # morph_info: mapping between morph['id'] and span_i
+
+      pos = [[{'id': 0, 'text': '[ROOT]', 'pos_tag': '[ROOT]'}]] + sentence['pos']
+
+      morph_info = {}
+      for word in pos:
+        for morph in word:
+          # Update raw text
+          kmdp_string += morph['text']
+
+          # Update span info
+          annotation.append('T{}\t{} {} {}\t{}'.format(span_i, morph['pos_tag'], txt_i, txt_i+len(morph['text']), morph['text']))
+          morph_info[morph['id']] = 'T' + str(span_i)
+
+          # Update indices
+          txt_i += len(morph['text'])
+          span_i += 1
+
+          # Divider between morphemes
+          if morph != word[-1]:
+            kmdp_string += divide_morph
+            txt_i += len(divide_morph)
+
+        # Divider between word-phrases
+        if word != sentence['pos'][-1]:
+          kmdp_string += divide_wp
+          txt_i += len(divide_wp)
+      
+      # Update arc info
+      for arc in sentence['kmdp']:
+        annotation.append('R{}\t{} Arg1:{} Arg2:{}'.format(arc_i, arc['label'], morph_info[arc['head']], morph_info[arc['dep']]))
+        arc_i += 1
+
+      # Line-breakers
+      kmdp_string += '\n'
+      txt_i += 1
+    
+      if sent_i % 20 == 19 or sent_i == len(inputs)-1:
+        with open(args.brat+'/result_{}.txt'.format(page_i), 'w', encoding='UTF-8') as file:
+          file.write(kmdp_string)
+
+        with open(args.brat+'/result_{}.ann'.format(page_i), 'w', encoding='UTF-8') as file:
+          file.write('\n'.join(annotation))
+        txt_i = 0
+        kmdp_string = ''
+        span_i = 1
+        arc_i = 1
+        annotation = []
+        page_i += 1
+      
   else:
     result_logger.info(json.dumps(inputs, indent=4, ensure_ascii=False))
 
@@ -202,8 +272,14 @@ def cli_main():
   parser.add_argument('--error-file', type=str, default='error_'+datetime.now().strftime('%y%m%d_%H%M%S')+'.log', help='if any error is raised, log errors to file.')
   parser.add_argument('--exclude', '-x', type=str, nargs='*', action='append', help='Rule name(alias) to exclude from current run.')
   parser.add_argument('--simple', action='store_true', help='Only print KMDP results, not full VictorNLP format corpus.')
+  parser.add_argument('--brat', type=str, help='Directory to brat/data. Print KMDP results as `brat` format.')
 
   args = parser.parse_args()
+
+  if args.brat:
+    assert not args.simple and 'Cannot select two output formats at once!'
+    assert args.brat.endswith('/data') and 'Enter proper brat/data directory!'
+
   main(args)
 
 
