@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from dependency import kmdp_rules, kmdp_generate
 from dependency.lexicals import label2head
-from dependency.interface import KMDPGenerateException, get_doc, find_dominated_rules
+from dependency.interface import KMDPGenerateException, get_doc, find_dominated_rules, is_local
 
 def generate_rule_based_KMDP(sentence):
   """
@@ -67,17 +67,25 @@ def generate_rule_based_KMDP(sentence):
       applied_rule = None
       safe_rules = []
       for rule in kmdp_rules:
-        if kmdp_arc:
-          continue
-        kmdp_arc = kmdp_generate(rule, dep_wp, j, head_wp, arc['label'])
-        if kmdp_arc and not applied_rule:
+        try:
+          if is_local(rule):
+            kmdp_arc_temp = kmdp_generate(rule, dep_wp, j, head_wp, arc['label'])
+          else:
+            kmdp_arc_temp = kmdp_generate(rule, sentence, i, j)
+        except KMDPGenerateException as e:
+          if not applied_rule:
+            raise e
+
+        if not kmdp_arc:
+          kmdp_arc = kmdp_arc_temp
+        if kmdp_arc_temp and not applied_rule:
           # if any valid result,
           if dep_wp[j]['pos_tag'] not in label2head['all_heads']:
             raise KMDPGenerateException(rule, 'Non-head morphemes should not have heads.', dep_wp, j, head_wp, arc['label'])
           # update value
           applied_rule = rule
           safe_rules = find_dominated_rules(rule)
-        elif kmdp_arc and applied_rule and rule not in safe_rules:
+        elif kmdp_arc_temp and applied_rule and rule not in safe_rules:
           # If two un-dominated rules collide:
           raise KMDPGenerateException(rule, 'Rule collision with {}'.format(applied_rule), dep_wp, j, head_wp, arc['label'])
       
@@ -147,6 +155,9 @@ def main(args):
       })
       if args.interactive:
         interactive_ui(e)
+    # except Exception as e:
+    #   print(e)
+    #   return None
   
   for error in errors:
     error_logger.info(error['sentence']['text'])
@@ -244,10 +255,12 @@ def main(args):
       txt_i += 1
     
       if sent_i % 20 == 19 or sent_i == len(inputs)-1:
-        with open(args.brat+'/result_{}.txt'.format(page_i), 'w', encoding='UTF-8') as file:
+        # Pad page index with zeros
+        page_str_i = '0' * (len(str((len(inputs)-1)//20+1)) - len(str(page_i))) + str(page_i)
+        with open(args.brat+'/result_{}.txt'.format(page_str_i), 'w', encoding='UTF-8') as file:
           file.write(kmdp_string)
 
-        with open(args.brat+'/result_{}.ann'.format(page_i), 'w', encoding='UTF-8') as file:
+        with open(args.brat+'/result_{}.ann'.format(page_str_i), 'w', encoding='UTF-8') as file:
           file.write('\n'.join(annotation))
         txt_i = 0
         kmdp_string = ''

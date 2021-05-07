@@ -4,19 +4,42 @@ provide interfaces to access rules
 """
 
 from . import _kmdp_rule_dict, _kmdp_precedence
+from .rules_base import KMDPRuleBase
 
-def kmdp_generate(alias, dep_wp, dep_wp_i, head_wp, dp_label):
+def is_local(alias):
+  if issubclass(_kmdp_rule_dict[alias], KMDPRuleBase):
+    return True
+  return False
+
+
+def kmdp_generate(alias, *args):
+  if is_local(alias):
+    return kmdp_generate_local(alias, *args)
+  else:
+    return kmdp_generate_global(alias, *args)
+
+def kmdp_generate_global(alias, sentence, dep_id, dep_wp_i):
+  return _kmdp_rule_dict[alias].generate(sentence, dep_id, dep_wp_i)
+
+def kmdp_generate_local(alias, dep_wp, dep_wp_i, head_wp, dp_label):
   return _kmdp_rule_dict[alias].generate(dep_wp, dep_wp_i, head_wp, dp_label)
 
-def kmdp_recover(alias, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
-  return _kmdp_rule_dict[alias].recover(dep_wp_i, head_wp, head_wp_i, kmdp_label)
+def kmdp_recover(alias, sentence, dep_id, dep_wp_i):
+  if issubclass(_kmdp_rule_dict[alias], KMDPRuleBase):
+    dep_wp = sentence['pos'][dep_id]
+    head_wp = sentence['pos'][sentence['dependency'][dep_id]['head']-1]
+    dp_label = sentence['dependency'][dep_id]['label']
+    return _kmdp_rule_dict[alias].recover(dep_wp, dep_wp_i, head_wp, dp_label)
+  return _kmdp_rule_dict[alias].recover(sentence, dep_id, dep_wp_i)
 
 
 def get_doc(alias):
   """
   Returns docstring of the rule.
   """
-  return _kmdp_rule_dict[alias].__doc__
+  if alias in _kmdp_rule_dict:
+    return _kmdp_rule_dict[alias].__doc__
+  raise ValueError('Rule {} does not exist'.format(alias))
 
 def find_dominated_rules(alias):
   """
