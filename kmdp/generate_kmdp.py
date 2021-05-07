@@ -3,7 +3,9 @@
 Generates KMDP from DP & PoS tagging results.
 """
 
+import os
 import argparse
+import re
 import json
 import logging
 from collections import Counter
@@ -200,6 +202,10 @@ def main(args):
 
   elif args.brat:
     # write into brat format(for brat visualization)
+    for filename in os.listdir(args.brat):
+      if re.match('result_[0-9]*\.(txt)|(ann)', filename):
+        os.remove(os.path.join(args.brat, filename))
+
     divide_wp = '  ▁  '
     divide_morph = '  '
 
