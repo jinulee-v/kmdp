@@ -183,7 +183,7 @@ def main(args):
   if args.simple:
     # write into simple CoNLL-X style format(for visualization)
     kmdp_string = ''
-    for sentence in inputs:
+    for i, sentence in enumerate(inputs):
       if 'kmdp' not in sentence:
         continue
       text = sentence['text']
@@ -196,7 +196,7 @@ def main(args):
         kmdp_arcs += '{}\t->\t{}\t{: <5}\n'.format(format_morph(pos_flatten[kmdp_arc['dep']]), format_morph(pos_flatten[kmdp_arc['head']]), kmdp_arc['label'])
       
       # Update final string
-      kmdp_string += '; ' + text + '\n# ' + pos + '\n' + kmdp_arcs + '\n'
+      kmdp_string += '> ' + str(i) + ' \n; ' + text + '\n# ' + pos + '\n' + kmdp_arcs + '\n'
 
     result_logger.info(kmdp_string)
 
@@ -206,6 +206,7 @@ def main(args):
       if re.match('result_[0-9]*\.(txt)|(ann)', filename):
         os.remove(os.path.join(args.brat, filename))
 
+    sents_in_page = 100000
     divide_wp = '  ▁  '
     divide_morph = '  '
 
@@ -260,9 +261,9 @@ def main(args):
       kmdp_string += '\n'
       txt_i += 1
     
-      if sent_i % 20 == 19 or sent_i == len(inputs)-1:
+      if sent_i % sents_in_page == sents_in_page or sent_i == len(inputs)-1:
         # Pad page index with zeros
-        page_str_i = '0' * (len(str((len(inputs)-1)//20+1)) - len(str(page_i))) + str(page_i)
+        page_str_i = '0' * (len(str((len(inputs)-1)//sents_in_page+1)) - len(str(page_i))) + str(page_i)
         with open(args.brat+'/result_{}.txt'.format(page_str_i), 'w', encoding='UTF-8') as file:
           file.write(kmdp_string)
 
