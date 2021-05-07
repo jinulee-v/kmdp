@@ -7,7 +7,7 @@ Implements two special rules that requires globally scoped scanning.
 from .rules_base import *
 
 from .interface import kmdp_generate, KMDPGenerateException
-from .lexicals import label2head, head2label
+from .lexicals import label2head, head2label, brackets
 from . import register_global_rule, kmdp_rules
 
 
@@ -91,7 +91,6 @@ class DescriptiveBracketsRule():
     dp = [{}] + sentence['dependency']
 
     # Brackets
-    brackets = ['()', '{}', '[]', '<>']
     pair_open = {}; pair_close = {}
     for open, close in brackets:
       pair_open[open] = close
