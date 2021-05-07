@@ -192,8 +192,6 @@ class DescriptiveBracketsRule():
       dep_wp = dep_wp[dep_wp_i:dep_wp_i+1]
       dp_label = head2label[dep_wp[0]['pos_tag']] + '_ADJ'
       head_wp = head_wp[:open_index]
-      print(sentence['text'])
-      print(dep_wp[0]['text'] + ' -> ' + ' '.join([morph['text'] for morph in head_wp]) + ' / ' + dp_label)
 
       for rule in kmdp_rules:
         # Skip global rules
