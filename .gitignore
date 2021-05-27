@@ -1,3 +1,4 @@
 corpus
 __pycache__
 *.log
+result*.txt

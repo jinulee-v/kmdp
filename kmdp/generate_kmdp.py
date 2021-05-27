@@ -203,10 +203,14 @@ def main(args):
   elif args.brat:
     # write into brat format(for brat visualization)
     for filename in os.listdir(args.brat):
-      if re.match('result_[0-9]*\.(txt)|(ann)', filename):
+      if filename == 'annotation.conf':
+        continue
+      elif re.match('result_[0-9]*\.txt', filename):
+        os.remove(os.path.join(args.brat, filename))
+      elif re.match('result_[0-9]*\.ann', filename):
         os.remove(os.path.join(args.brat, filename))
 
-    sents_in_page = 100000
+    sents_in_page = 100
     divide_wp = '  ▁  '
     divide_morph = '  '
 
@@ -261,14 +265,14 @@ def main(args):
       kmdp_string += '\n'
       txt_i += 1
     
-      if sent_i % sents_in_page == sents_in_page or sent_i == len(inputs)-1:
+      if sent_i % sents_in_page == sents_in_page - 1 or sent_i == len(inputs)-1:
         # Pad page index with zeros
         page_str_i = '0' * (len(str((len(inputs)-1)//sents_in_page+1)) - len(str(page_i))) + str(page_i)
         with open(args.brat+'/result_{}.txt'.format(page_str_i), 'w', encoding='UTF-8') as file:
           file.write(kmdp_string)
-
         with open(args.brat+'/result_{}.ann'.format(page_str_i), 'w', encoding='UTF-8') as file:
           file.write('\n'.join(annotation))
+        
         txt_i = 0
         kmdp_string = ''
         span_i = 1
