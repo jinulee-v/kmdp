@@ -16,7 +16,7 @@ _NP_heads = [
 
 # Verb(Korean adjectives)-like heads
 _VP_heads = [
-  'VV', 'VA', 'VX', 'VCP', 'VCN', 'XSV', 'NV'
+  'VV', 'VA', 'VX', 'VCP', 'VCN', 'XSV', 'XSA', 'NV'
 ]
 
 # Tense-suffix heads
@@ -27,7 +27,7 @@ _CP_heads = ['EF', 'EC']
 
 # Adverb-like heads
 _AP_heads = [
-  'MAG', 'MAJ', 'XSA'
+  'MAG', 'MAJ'
 ]
 
 # Adjective-like ehads
@@ -79,4 +79,4 @@ SH_adjectives = ['故', '新']
 
 # Brackets
 
-brackets = ['()', '{}', '[]', '<>']
+brackets = ['()', '{}', '[]', '<>', '’’', '““']

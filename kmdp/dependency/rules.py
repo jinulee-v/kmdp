@@ -33,14 +33,25 @@ class DefaultInterRule(KMDPRuleBase):
     # if dep_wp_i-th morpheme is the last head of dep_wp:
     # Inter-WP dependency
     # Return the last head morpheme from the head_wp.
-    brackets_joined = ''.join(brackets)
+    brackets_opener = ''.join([set[0] for set in brackets])
+    brackets_closer = ''.join([set[1] for set in brackets])
+    
     head_wp_i = None
-    for i in range(len(head_wp)):
+    head_bracket_wp_i = None
+    inside_bracket = False
+    for i in reversed(range(len(head_wp))):
       if head_wp[i]['pos_tag'] in label2head['all_heads']:
-        head_wp_i = i
-        break
-      if i > 0 and head_wp[i]['text'] in brackets_joined:
-        break
+        if inside_bracket and not head_bracket_wp_i:
+          head_bracket_wp_i = i
+        elif not inside_bracket and not head_wp_i:
+          head_wp_i = i
+          break
+      elif head_wp[i]['text'] in brackets_closer:
+        inside_bracket = True
+      elif head_wp[i]['text'] in brackets_opener:
+        inside_bracket = False
+    if head_wp_i is None:
+      head_wp_i = head_bracket_wp_i
 
     if head_wp_i is None:
       raise KMDPGenerateException('default_inter', 'No head morpheme in head_wp; or head_wp starts with brackets', dep_wp, dep_wp_i, head_wp, dp_label)
@@ -181,13 +192,24 @@ class VPArgumentsRule(KMDPRuleBase):
         # Intra-WP dependency
         return None
     
+    head_wp_i = None
+    head_wp_i_VX = None
     for i in range(len(head_wp)):
-      if head_wp[i]['pos_tag'] in label2head['VP']:
-        return {
-          'dep': dep_morph['id'],
-          'head': head_wp[i]['id'],
-          'label': dp_label
-        }
+      if head_wp[i]['pos_tag'] in label2head['VP'] and head_wp[i]['pos_tag'] not in ['VX']:
+        if head_wp_i:
+          raise KMDPGenerateException('VP_arguments', 'Multiple VP heads in one word-phrase', dep_wp, dep_wp_i, head_wp, dp_label)
+        head_wp_i = i
+      elif head_wp[i]['pos_tag'] in ['VX']:
+        head_wp_i_VX = i
+        break
+    if head_wp_i is None:
+      head_wp_i = head_wp_i_VX
+    if head_wp_i is not None:
+      return {
+        'dep': dep_morph['id'],
+        'head': head_wp[head_wp_i]['id'],
+        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+      }
     
     return None
   
@@ -209,4 +231,73 @@ class VPArgumentsRule(KMDPRuleBase):
         'head': None,
         'label': kmdp_label
       }
+
+
+@register_kmdp_rule('NP_adjunct', ['VP_arguments'])
+class NPAdjuctRule(KMDPRuleBase):
+  """
+  Rules for Inter-WP dependencies where dependent is DP.
+  DPs must bind to NPs.
+  """
+
+  def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] not in label2head['DP'] + label2head['NP']:
+      return None
+    elif dep_morph['pos_tag'] in label2head['NP']:
+      if dp_label not in ['NP', 'NP_CNJ', 'NP_MOD']:
+        return None
+
+    # If head PoS, find next head morpheme.
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+        # Intra-WP dependency
+        return None
     
+    # DP/NP -> NP adjunct
+    head_wp_i = None
+    head_found = False
+    for i in range(len(head_wp)):
+      if head_wp[i]['pos_tag'] in label2head['NP'] and not \
+        (head_wp[i]['pos_tag'] == 'XSN' and head_wp[i]['text'] == '들' or \
+        head_wp[i]['pos_tag'] =='ETN'):
+        if head_wp_i is not None and head_found:
+          raise KMDPGenerateException('NP_adjunct', 'Two or more NP heads', dep_wp, dep_wp_i, head_wp, dp_label)
+        if not head_found:
+          head_wp_i = i
+      elif head_wp[i]['pos_tag'] == 'XPN':
+        continue
+      elif head_wp[i]['pos_tag'].startswith('S') and head_wp[i]['pos_tag'] not in label2head['all_heads']:
+        break
+      elif head_wp_i is not None and head_wp[i]['pos_tag'] not in label2head['NP']:
+        head_found = True
+    if head_wp_i is not None:    
+      return {
+        'dep': dep_morph['id'],
+        'head': head_wp[head_wp_i]['id'],
+        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+      }
+      
+    return None
+  
+  def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] not in label2head['DP'] + label2head['NP']:
+      return None
+    elif dep_morph['pos_tag'] in label2head['NP']:
+      if dp_label not in ['NP', 'NP_CNJ']:
+        return None
+
+    # If head PoS, find next head morpheme.
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+        # Intra-WP dependency
+        return None
+    
+    if head_wp[head_wp_i]['pos_tag'] in label2head['NP']:
+      return {
+        'dep': None,
+        'head': None,
+        'label': kmdp_label
+      }
+    raise KMDPGenerateException('NP_adjunct', 'Cannot find NP head', dep_wp, dep_wp_i, head_wp, dp_label)
