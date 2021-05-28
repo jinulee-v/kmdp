@@ -6,6 +6,8 @@ Defines rule format and its instances.
 def function(dep_word_phrase, )
 """
 
+import re
+
 from .rules_base import *
 from . import register_kmdp_rule
 
@@ -70,6 +72,13 @@ class DefaultIntraRule(KMDPRuleBase):
   Default rule that can be applied to Intra-WP dependencies.
   """
 
+  @classmethod
+  def is_intra_head(cls, morph):
+    for non_head in non_intra_head_conditions:
+      if morph['pos_tag'] == non_head['pos_tag'] and re.match(non_head['text'], morph['text']):
+        return False
+    return True
+
   def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
     dep_morph = dep_wp[dep_wp_i]
     if dep_morph['pos_tag'] not in label2head['all_heads']:
@@ -78,7 +87,7 @@ class DefaultIntraRule(KMDPRuleBase):
     
     # If head PoS, find next head morpheme.
     for i in range(dep_wp_i+1, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+      if dep_wp[i]['pos_tag'] in label2head['all_heads'] and cls.is_intra_head(dep_wp[i]):
         # Intra-WP dependency
         return {
           'dep': dep_morph['id'],
@@ -214,3 +223,25 @@ class NPAdjuctRule(KMDPRuleBase):
       }
       
     return None
+
+
+@register_kmdp_rule('EPH', ['default_intra'])
+class EPHRule(KMDPRuleBase):
+  """
+  Rules for Polite EP(-si-; tag EPH originates from KKma PoS tagset).
+  EPH's head is its preceding verb.
+  """
+
+  def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] != 'EP' or dep_morph['text'] not in ['시', '으시']:
+      return None
+    
+    if dep_wp_i > 0 and dep_wp[dep_wp_i-1]['pos_tag'] in label2head['VP']:
+      return {
+        'dep': dep_morph['id'],
+        'head': dep_wp[dep_wp_i-1]['id'],
+        'label': 'POL'
+      }
+      
+    raise KMDPGenerateException('EPH', 'Cannot find preceding verb for EPH', dep_wp, dep_wp_i, head_wp, dp_label)

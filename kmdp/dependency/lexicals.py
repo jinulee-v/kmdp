@@ -73,6 +73,19 @@ dp_labels = _labels['dp_labels']
 
 ###############################################################################
 
+# Non-head conditions
+# These morphemes are never a head of another morpheme
+non_intra_head_conditions = [
+  {
+    'text': '.*',
+    'pos_tag': 'XPN'
+  },
+  {
+    'text': '으?시',
+    'pos_tag': 'EP'
+  }
+]
+
 # SH Adjectives
 
 SH_adjectives = ['故', '新']
