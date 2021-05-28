@@ -171,8 +171,8 @@ class VPArgumentsRule(KMDPRuleBase):
 @register_kmdp_rule('NP_adjunct', ['VP_arguments'])
 class NPAdjuctRule(KMDPRuleBase):
   """
-  Rules for Inter-WP dependencies where dependent is DP.
-  DPs must bind to NPs.
+  Rules for Inter-WP dependencies where head is DP or NP.
+  DPs and NPs must bind to NPs.
   """
 
   def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
