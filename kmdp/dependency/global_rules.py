@@ -65,9 +65,6 @@ class RecursiveHeadRule():
       curr_id = head_id
     return None
 
-  def recover(sentence, dep_id, dep_wp_i, head_i):
-    raise NotImplementedError(('RecursiveHeadRule does not implement recover(); consider `-x recursive_head` option when executing'))
-
 
 @register_global_rule('global_descriptive_brackets', [])
 class DescriptiveBracketsRule():
@@ -83,7 +80,6 @@ class DescriptiveBracketsRule():
 
   Note: This rule breaks head-finality, be cautious when implementing .
   Note: This rule assumes max(level)=1 for brackets. FIXME
-  Note: Recovering DP result from this rule is not yet implemented.
   """
 
   def generate(sentence, dep_id, dep_wp_i):

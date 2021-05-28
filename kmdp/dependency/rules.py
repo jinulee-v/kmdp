@@ -63,30 +63,9 @@ class DefaultInterRule(KMDPRuleBase):
       }
     raise KMDPGenerateException('default_inter', 'No head morpheme in head_wp', dep_wp, dep_wp_i, head_wp, dp_label)
   
-  def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
-    dep_morph = dep_wp[dep_wp_i]
-    if dep_morph['pos_tag'] not in label2head['all_heads']:
-      # If non-head PoS, do nothing.
-      return None
-    
-    # If head PoS, find next head morpheme.
-    for i in range(dep_wp_i+1, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
-        # Intra-WP dependency
-        return None
-
-    if kmdp_label not in dp_labels:
-      raise KMDPRecoverException('default_inter', 'Invalid DP label: {}'.format(kmdp_label), dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label)
-
-    return {
-      'dep': None,
-      'head': None,
-      'label': kmdp_label
-    }
-
 
 @register_kmdp_rule("default_intra", [])
-class DefaultIntraRule(KMDPIntraWPRuleBase):
+class DefaultIntraRule(KMDPRuleBase):
   """
   Default rule that can be applied to Intra-WP dependencies.
   """
@@ -148,31 +127,6 @@ class AdjectiveSHRule(KMDPRuleBase):
           'label': 'DP' + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
         }
     raise KMDPGenerateException('adjective_SH', 'Unexpected reach of end', dep_wp, dep_wp_i, head_wp, dp_label)
-  
-  def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
-    dep_morph = dep_wp[dep_wp_i]
-    if dep_morph['text'] not in SH_adjectives:
-      # If not adjective-like chinese character, do nothing.
-      return None
-    
-    # If head PoS, find next head morpheme.
-    for i in range(dep_wp_i+1, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
-        # Intra-WP dependency
-        return {
-          'dep': None,
-          'head': None,
-          'label': 'XPN'
-        }
-
-    if kmdp_label not in dp_labels:
-      raise KMDPRecoverException('default_inter', 'Invalid DP label: {}'.format(kmdp_label), dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label)
-
-    return {
-      'dep': None,
-      'head': None,
-      'label': 'NP'
-    }
 
 
 @register_kmdp_rule("VP_arguments", ['default_inter'])
@@ -212,25 +166,6 @@ class VPArgumentsRule(KMDPRuleBase):
       }
     
     return None
-  
-  def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
-    dep_morph = dep_wp[dep_wp_i]
-    if dep_morph['pos_tag'] not in label2head['all_heads']:
-      # If not adjective-like chinese character, do nothing.
-      return None
-
-    # If head PoS, find next head morpheme.
-    for i in range(dep_wp_i+1, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
-        # Intra-WP dependency
-        return None
-    
-    if head_wp[head_wp_i]['pos_tag'] in label2head['VP']:
-      return {
-        'dep': None,
-        'head': None,
-        'label': kmdp_label
-      }
 
 
 @register_kmdp_rule('NP_adjunct', ['VP_arguments'])
@@ -279,25 +214,3 @@ class NPAdjuctRule(KMDPRuleBase):
       }
       
     return None
-  
-  def recover(cls, dep_wp, dep_wp_i, head_wp, head_wp_i, kmdp_label):
-    dep_morph = dep_wp[dep_wp_i]
-    if dep_morph['pos_tag'] not in label2head['DP'] + label2head['NP']:
-      return None
-    elif dep_morph['pos_tag'] in label2head['NP']:
-      if dp_label not in ['NP', 'NP_CNJ']:
-        return None
-
-    # If head PoS, find next head morpheme.
-    for i in range(dep_wp_i+1, len(dep_wp)):
-      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
-        # Intra-WP dependency
-        return None
-    
-    if head_wp[head_wp_i]['pos_tag'] in label2head['NP']:
-      return {
-        'dep': None,
-        'head': None,
-        'label': kmdp_label
-      }
-    raise KMDPGenerateException('NP_adjunct', 'Cannot find NP head', dep_wp, dep_wp_i, head_wp, dp_label)
