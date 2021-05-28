@@ -213,6 +213,8 @@ class NPAdjuctRule(KMDPRuleBase):
         continue
       elif head_wp[i]['pos_tag'].startswith('S') and head_wp[i]['pos_tag'] not in label2head['all_heads']:
         break
+      elif head_wp[i]['pos_tag'] == 'VCP':
+        break
       elif head_wp_i is not None and head_wp[i]['pos_tag'] not in label2head['NP']:
         head_found = True
     if head_wp_i is not None:    
