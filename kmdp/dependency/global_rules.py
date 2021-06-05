@@ -66,7 +66,7 @@ class RecursiveHeadRule():
     return None
 
 
-@register_global_rule('global_descriptive_brackets', [])
+@register_global_rule('global_descriptive_brackets', ['global_scope'])
 class DescriptiveBracketsRule():
   """
   Peforms different parsing method for 'Descriptive Brackets':
@@ -185,7 +185,7 @@ class DescriptiveBracketsRule():
         # 정부 합의안이 (국회에서) 무시당한
         return None
       dep_wp = dep_wp[dep_wp_i:dep_wp_i+1]
-      dp_label = head2label[dep_wp[0]['pos_tag']] + '_ADJ'
+      dp_label = head2label[dep_wp[0]['pos_tag']] + '_AJT'
       head_wp = head_wp[:open_index]
 
       for rule in kmdp_rules:
@@ -203,4 +203,90 @@ class DescriptiveBracketsRule():
     # Nothing
     else:
       return None
-      
+
+
+@register_global_rule('global_scope', [])
+class ScopeRule():
+  """
+  Scope rule. Dependency inside brackets and quotations remain internal.
+  """
+
+  def generate(sentence, dep_id, dep_wp_i):
+    pos = [[{'id': 0, 'text': '[ROOT]', 'pos_tag': '[ROOT]'}]] + sentence['pos']
+    dp = [{}] + sentence['dependency']
+
+    # Brackets
+    pair_open = {}; pair_close = {}
+    for open, close in brackets:
+      pair_open[open] = close
+      pair_close[close] = open
+
+    # Index scope with morphh[id]
+    if 'scope' not in sentence:
+      scope = []
+      level = 1
+      stack = []
+      for wp in pos:
+        for morph in wp:
+          scope.append(level)
+          if morph['text'] in pair_close and len(stack)>0 and stack[-1] == pair_close[morph['text']]:
+            del stack[-1]
+            level -= 1
+          elif morph['text'] in pair_open:
+            stack.append(morph['text'])
+            level += 1
+      if len(stack) == 0:
+        if level != 1:
+          raise KMDPGenerateException('global_scope', 'incomplete scope', dep_wp, dep_wp_i, head_wp, dp_label)
+      sentence['scope'] = scope
+    else:
+      scope = sentence['scope']
+    
+    dep_wp = pos[dep_id]
+    head_wp = pos[dp[dep_id]['head']]
+    dp_label = dp[dep_id]['label']
+
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+        # Intra-WP dependency
+        return None
+    if scope[head_wp[0]['id']] == scope[head_wp[-1]['id']]:
+      return None
+    
+    modified = False
+    if scope[dep_wp[dep_wp_i]['id']] <= scope[head_wp[0]['id']]:
+      # infront of the scope
+      for i, head_morph in enumerate(head_wp):
+        if scope[dep_wp[dep_wp_i]['id']] != scope[head_morph['id']]:
+          head_wp_new = head_wp[:i]
+          modified = True
+          break
+    if not modified and scope[dep_wp[dep_wp_i]['id']] >= scope[head_wp[-1]['id']]:
+      # infront of the scope
+      for i, head_morph in enumerate(head_wp):
+        if scope[dep_wp[dep_wp_i]['id']] == scope[head_morph['id']]:
+          head_wp_new = head_wp[i:]
+          modified = True
+          break
+    if modified:
+      for head_morph in head_wp_new:
+        if head_morph['pos_tag'] in label2head['all_heads']:
+          head_wp= head_wp_new
+          break
+    else:
+      pass
+      # raise KMDPGenerateException('global_scope', 'scope unmatch', dep_wp, dep_wp_i, head_wp, dp_label)
+    
+    for rule in kmdp_rules:
+      # Skip global rules
+      if 'global_' in rule:
+        continue
+      dp_label = dp[dep_id]['label']
+      result = kmdp_generate(rule, dep_wp, dep_wp_i, head_wp, dp_label)
+      # If found rule that applies, return the value
+      if result:
+        return result
+    # If no rules can apply... (this will raise an error in generate_kmdp.py)
+    if not result:
+      return None
+
