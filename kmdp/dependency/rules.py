@@ -122,7 +122,7 @@ class AdjectiveSHRule(KMDPRuleBase):
         return {
           'dep': dep_morph['id'],
           'head': dep_wp[i]['id'],
-          'label': 'DP'
+          'label': 'XPN'
         }
     
     # if dep_wp_i-th morpheme is the last head of dep_wp:
