@@ -281,7 +281,16 @@ def main(args):
         page_i += 1
       
   else:
-    result_logger.info(json.dumps(inputs, indent=4, ensure_ascii=False))
+    remove_list = [i]
+    for i, sentence in enumerate(inputs):
+      sentence.pop('scope', None)
+      if (not args.incomplete_dataset) and ('kmdp' not in sentence):
+        # Errorneous sentences are removed from the dataset
+        remove_list.append(i)
+    for nth, i in enumerate(remove_list):
+      del inputs[i-nth]
+    with open(args.dst_file, 'w', encoding='UTF-8') as file:
+      json.dump(inputs, file, indent=4, ensure_ascii=False)
 
 
 def cli_main():
@@ -297,6 +306,7 @@ def cli_main():
   parser.add_argument('--exclude', '-x', type=str, nargs='*', action='append', help='Rule name(alias) to exclude from current run.')
   parser.add_argument('--simple', action='store_true', help='Only print KMDP results, not full VictorNLP format corpus.')
   parser.add_argument('--brat', type=str, help='Directory to brat/data. Print KMDP results as `brat` format.')
+  parser.add_argument('--incomplete-dataset', action='store_true', help='Only store complete KMDP-parsed sentences with JSON format')
 
   args = parser.parse_args()
 
