@@ -177,7 +177,7 @@ class VPArgumentsRule(KMDPRuleBase):
     return None
 
 
-@register_kmdp_rule('NP_adjunct', ['VP_arguments'])
+@register_kmdp_rule('NP_adjunct', ['Double_VP_arguments'])
 class NPAdjuctRule(KMDPRuleBase):
   """
   Rules for Inter-WP dependencies where head is DP or NP.
@@ -247,3 +247,102 @@ class EPHRule(KMDPRuleBase):
       }
       
     raise KMDPGenerateException('EPH', 'Cannot find preceding verb for EPH', dep_wp, dep_wp_i, head_wp, dp_label)
+
+@register_kmdp_rule('XR_for_XSV', ['VP_arguments', 'default_intra'])
+class XRForXSVRule(KMDPRuleBase):
+  """
+  Rules for XSV(-ha-)/XSA with Noun predicate.
+  Noun directly preceding the XSV/XSA is tagged as XR; expressing its special semantic/syntactic relationship.
+  """
+
+  def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] not in label2head['NP'] or (dep_wp_i+1 >= len(dep_wp) or dep_wp[dep_wp_i+1]['pos_tag'] not in ['XSV', 'XSA']):
+      return None
+    
+    return {
+      'dep': dep_morph['id'],
+      'head': dep_wp[dep_wp_i+1]['id'],
+      'label': 'XR'
+    }
+
+@register_kmdp_rule('XR', ['VP_arguments', 'default_intra', 'default_inter', 'XR_for_XSV'])
+class XRRule(KMDPRuleBase):
+  """
+  Rules for XR.
+  Similar to predicates of XSV/XSA, but is for non-noun predicates.
+  """
+
+  def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] != 'XR':
+      return None
+    
+    # Check if it is an inter-wp dependency.
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+        # Intra-WP dependency
+        return None
+
+    for i, head_morph in enumerate(head_wp):
+      if head_morph['pos_tag'] in ['XSA', 'XSV']:
+        return {
+          'dep': dep_morph['id'],
+          'head': head_morph['id'],
+          'label': 'XR'
+        }
+    
+    return None
+
+@register_kmdp_rule('Double_VP_arguments', ['VP_arguments'])
+class DoubleVPArgumentsRule(KMDPRuleBase):
+  """
+  Rules for Embedded phrases(quotes) & A-seo-i-da style phrases.
+  This potentially solves the exception in VP_arguments where
+  Verb-Complement-VCP order is established in a single word-phrase.
+
+  * Aseoida phrases
+  그것은 화를 억누르지 못해서이다. 그것 -> 이 (NP_SBJ)
+  그것이 화를 억누르지 못해서이다. 그것 -> 하 (NP_SBJ)
+  """
+
+  def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] not in label2head['all_heads']:
+      return None
+
+    # Check if it is an inter-wp dependency.
+    for i in range(dep_wp_i+1, len(dep_wp)):
+      if dep_wp[i]['pos_tag'] in label2head['all_heads']:
+        # Intra-WP dependency
+        return None
+
+    # Check if VCP and non-VCP verb co-exists.
+    verb = None
+    complement = None
+    vcp = None
+    for i, head_morph in enumerate(head_wp):
+      if head_morph['pos_tag'] == 'VCP' and verb is not None:
+        vcp = i
+        break
+      elif head_morph['pos_tag'] in label2head['VP']:
+        verb = i
+      elif head_morph['pos_tag'].startswith('E'):
+        complement = i
+    if vcp is None or complement is None or verb is None:
+      return None
+    
+    if '_SBJ' in dp_label and dep_wp_i+1 < len(dep_wp) and dep_wp[dep_wp_i+1]['pos_tag'] == 'JX' and dep_wp[dep_wp_i+1]['text'] in ['은', '는']:
+      # 그것은 화를 억누르지 못해서이다. 그것 -> 이 (NP_SBJ)
+      return {
+        'dep': dep_morph['id'],
+        'head': head_wp[vcp]['id'],
+        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+      }
+    else:
+      # 그것이 화를 억누르지 못해서이다. 그것 -> 하 (NP_SBJ)
+      return {
+        'dep': dep_morph['id'],
+        'head': head_wp[verb]['id'],
+        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+      }
