@@ -14,6 +14,13 @@ from . import register_kmdp_rule
 from .lexicals import *
 from .interface import KMDPGenerateException
 
+def auto_generate_dp_label(pos_tag, dp_label):
+  if dp_label.startswith('AP'):
+    return 'AP'
+  elif dp_label.startswith('DP'):
+    return 'DP'
+  return head2label[pos_tag] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+
 @register_kmdp_rule("default_inter", ['default_intra'])
 class DefaultInterRule(KMDPRuleBase):
   """
@@ -61,7 +68,7 @@ class DefaultInterRule(KMDPRuleBase):
       return {
         'dep': dep_morph['id'],
         'head': head_wp[head_wp_i]['id'],
-        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+        'label': auto_generate_dp_label(dep_morph['pos_tag'], dp_label)
       }
     raise KMDPGenerateException('default_inter', 'No head morpheme in head_wp', dep_wp, dep_wp_i, head_wp, dp_label)
   
@@ -133,7 +140,7 @@ class AdjectiveSHRule(KMDPRuleBase):
         return {
           'dep': dep_morph['id'],
           'head': head_wp[i]['id'],
-          'label': 'DP' + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+          'label': 'DP'
         }
     raise KMDPGenerateException('adjective_SH', 'Unexpected reach of end', dep_wp, dep_wp_i, head_wp, dp_label)
 
@@ -171,7 +178,7 @@ class VPArgumentsRule(KMDPRuleBase):
       return {
         'dep': dep_morph['id'],
         'head': head_wp[head_wp_i]['id'],
-        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+        'label': auto_generate_dp_label(dep_morph['pos_tag'], dp_label)
       }
     
     return None
@@ -221,7 +228,7 @@ class NPAdjuctRule(KMDPRuleBase):
       return {
         'dep': dep_morph['id'],
         'head': head_wp[head_wp_i]['id'],
-        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+        'label': auto_generate_dp_label(dep_morph['pos_tag'], dp_label)
       }
       
     return None
@@ -247,6 +254,27 @@ class EPHRule(KMDPRuleBase):
       }
       
     raise KMDPGenerateException('EPH', 'Cannot find preceding verb for EPH', dep_wp, dep_wp_i, head_wp, dp_label)
+
+@register_kmdp_rule('EPP', ['default_intra'])
+class EPPRule(KMDPRuleBase):
+  """
+  Rules for Polite EP(-op-; tag EPP originates from KKma PoS tagset).
+  EPP's head is its following EC/EF.
+  """
+
+  def generate(cls, dep_wp, dep_wp_i, head_wp, dp_label):
+    dep_morph = dep_wp[dep_wp_i]
+    if dep_morph['pos_tag'] != 'EP' or dep_morph['text'] not in ['옵', '사옵']:
+      return None
+    
+    if dep_wp_i < len(dep_wp) and dep_wp[dep_wp_i+1]['pos_tag'] in ['EC', 'EF']:
+      return {
+        'dep': dep_morph['id'],
+        'head': dep_wp[dep_wp_i+1]['id'],
+        'label': 'POL'
+      }
+      
+    raise KMDPGenerateException('EPP', 'Cannot find following EC/EF for EPP', dep_wp, dep_wp_i, head_wp, dp_label)
 
 @register_kmdp_rule('XR_for_XSV', ['VP_arguments', 'default_intra'])
 class XRForXSVRule(KMDPRuleBase):
@@ -337,12 +365,12 @@ class DoubleVPArgumentsRule(KMDPRuleBase):
       return {
         'dep': dep_morph['id'],
         'head': head_wp[vcp]['id'],
-        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+        'label': auto_generate_dp_label(dep_morph['pos_tag'], dp_label)
       }
     else:
       # 그것이 화를 억누르지 못해서이다. 그것 -> 하 (NP_SBJ)
       return {
         'dep': dep_morph['id'],
         'head': head_wp[verb]['id'],
-        'label': head2label[dep_morph['pos_tag']] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
+        'label': auto_generate_dp_label(dep_morph['pos_tag'], dp_label)
       }

@@ -185,7 +185,7 @@ class DescriptiveBracketsRule():
         # 정부 합의안이 (국회에서) 무시당한
         return None
       dep_wp = dep_wp[dep_wp_i:dep_wp_i+1]
-      dp_label = head2label[dep_wp[0]['pos_tag']] + '_AJT'
+      dp_label = head2label[dep_wp[0]['pos_tag']]
       head_wp = head_wp[:open_index]
 
       for rule in kmdp_rules:
