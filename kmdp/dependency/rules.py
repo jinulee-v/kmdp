@@ -15,9 +15,9 @@ from .lexicals import *
 from .interface import KMDPGenerateException
 
 def auto_generate_dp_label(pos_tag, dp_label):
-  if dp_label.startswith('AP'):
+  if pos_tag in label2head['AP']:
     return 'AP'
-  elif dp_label.startswith('DP'):
+  elif pos_tag in label2head['DP']:
     return 'DP'
   return head2label[pos_tag] + ('_' + dp_label.split('_')[-1] if '_' in dp_label else '')
 
@@ -129,7 +129,7 @@ class AdjectiveSHRule(KMDPRuleBase):
         return {
           'dep': dep_morph['id'],
           'head': dep_wp[i]['id'],
-          'label': 'XPN'
+          'label': 'NP'
         }
     
     # if dep_wp_i-th morpheme is the last head of dep_wp:
@@ -369,8 +369,6 @@ class DoubleVPArgumentsRule(KMDPRuleBase):
       }
     else:
       # 그것이 화를 억누르지 못해서이다. 그것 -> 하 (NP_SBJ)
-      return {
-        'dep': dep_morph['id'],
-        'head': head_wp[verb]['id'],
-        'label': auto_generate_dp_label(dep_morph['pos_tag'], dp_label)
-      }
+      # -> VP_arguments
+      return None
+

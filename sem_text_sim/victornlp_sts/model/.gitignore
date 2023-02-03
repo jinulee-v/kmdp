@@ -1,0 +1,4 @@
+corpus/
+models/
+victornlp_sentiment/victornlp_sentiment.egg-info/
+__pycache__

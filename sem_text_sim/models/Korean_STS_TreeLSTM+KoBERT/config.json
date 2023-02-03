@@ -1,0 +1,64 @@
+{
+    "language": {
+        "korean": {
+            "corpus": {
+                "train": {
+                    "a": "corpus/VictorNLP_kor(KorSTS)_train.a.json",
+                    "b": "corpus/VictorNLP_kor(KorSTS)_train.b.json",
+                    "pair-info": "corpus/VictorNLP_kor(KorSTS)_train.pairinfo.json"
+                },
+                "dev": {
+                    "a": "corpus/VictorNLP_kor(KorSTS)_dev.a.json",
+                    "b": "corpus/VictorNLP_kor(KorSTS)_dev.b.json",
+                    "pair-info": "corpus/VictorNLP_kor(KorSTS)_dev.pairinfo.json"
+                },
+                "test": {
+                    "a": "corpus/VictorNLP_kor(KorSTS)_test.a.json",
+                    "b": "corpus/VictorNLP_kor(KorSTS)_test.b.json",
+                    "pair-info": "corpus/VictorNLP_kor(KorSTS)_test.pairinfo.json"
+                },
+                "labels": "corpus/VictorNLP_kor(KorSTS)_labels.json"
+            },
+            "embedding": [
+                "kobert"
+            ],
+            "preprocessors": [
+                "word-count"
+            ],
+            "run": {}
+        }
+    },
+    "embedding": {
+        "kobert": {
+            "train": 0,
+            "special_tokens": {
+                "bos": "[CLS]"
+            }
+        }
+    },
+    "model": {
+        "tree-lstm": {
+            "hidden_size": 150,
+            "classifier_size": 50,
+            "r_size": 5
+        }
+    },
+    "train": {
+        "language": "korean",
+        "model": "tree-lstm",
+        "loss_fn": "sparse-dist",
+        "run_fn": "sparse-dist",
+        "epoch": 100,
+        "batch_size": 25,
+        "optimizer": "adagrad",
+        "learning_rate": 0.025,
+        "device": "cuda:0",
+        "early_stopping": {
+            "patience": 3,
+            "eps": 0.0,
+            "maximize": 0
+        },
+        "config_file": "victornlp_sts/config.json",
+        "title": "20210801 03:47:03 korean tree-lstm"
+    }
+}

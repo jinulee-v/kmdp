@@ -16,6 +16,9 @@ from dependency import kmdp_rules, kmdp_generate
 from dependency.lexicals import label2head
 from dependency.interface import KMDPGenerateException, get_doc, find_dominated_rules, is_local
 
+# debuging purpose
+rule_count = {}
+
 def generate_rule_based_KMDP(sentence):
   """
   @brief generate KMDP of the sentence.
@@ -44,6 +47,8 @@ def generate_rule_based_KMDP(sentence):
   dp = sentence['dependency']
   pos = sentence['pos']
   kmdp = []
+
+  global rule_count
 
   for i, (arc, dep_wp) in enumerate(zip(dp, pos), 1):
     assert i == arc['dep']
@@ -86,6 +91,7 @@ def generate_rule_based_KMDP(sentence):
             raise KMDPGenerateException(rule, 'Non-head morphemes should not have heads.', dep_wp, j, head_wp, arc['label'])
           # update value
           applied_rule = rule
+          rule_count[rule] = 1 if rule not in rule_count else (rule_count[rule] + 1)
           safe_rules = find_dominated_rules(rule)
         elif kmdp_arc_temp and applied_rule and rule not in safe_rules:
           # If two un-dominated rules collide:
@@ -102,6 +108,7 @@ def generate_rule_based_KMDP(sentence):
       kmdp.append(kmdp_arc)
   
   sentence['kmdp'] = kmdp
+
   return sentence
 
 ###############################################################################
@@ -291,18 +298,21 @@ def main(args):
       del inputs[i-nth]
     with open(args.dst_file, 'w', encoding='UTF-8') as file:
       json.dump(inputs, file, indent=4, ensure_ascii=False)
+  
+  # debug purpose
+  print(rule_count)
 
 
 def cli_main():
   parser = argparse.ArgumentParser(description='Generate KMDP out of Korean corpus, given DP and PoS-tagging results.')
 
   # File arguments
-  parser.add_argument('--src-file', type=str, help='File to load and parse')
-  parser.add_argument('--dst-file', type=str, default='-', help='File to store results. Default: stdout')
+  parser.add_argument('--src_file', type=str, help='File to load and parse')
+  parser.add_argument('--dst_file', type=str, default='-', help='File to store results. Default: stdout')
 
   # Options to detect and fix unexpected situations.
   parser.add_argument('--interactive', action='store_true', help='NOT IMPLEMENTED If any error is raised, interactively parse.')
-  parser.add_argument('--error-file', type=str, default='error_'+datetime.now().strftime('%y%m%d_%H%M%S')+'.log', help='if any error is raised, log errors to file.')
+  parser.add_argument('--error_file', type=str, default='kmdp/logs/error_'+datetime.now().strftime('%y%m%d_%H%M%S')+'.log', help='if any error is raised, log errors to file.')
   parser.add_argument('--exclude', '-x', type=str, nargs='*', action='append', help='Rule name(alias) to exclude from current run.')
   parser.add_argument('--simple', action='store_true', help='Only print KMDP results, not full VictorNLP format corpus.')
   parser.add_argument('--brat', type=str, help='Directory to brat/data. Print KMDP results as `brat` format.')

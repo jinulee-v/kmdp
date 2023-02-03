@@ -1,0 +1,6 @@
+[submodule "embedding/khaiii"]
+	path = embedding/khaiii
+	url = https://github.com/kakao/khaiii.git
+[submodule "pos_tagger/khaiii"]
+	path = pos_tagger/khaiii
+	url = https://github.com/kakao/khaiii.git

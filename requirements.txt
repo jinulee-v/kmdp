@@ -1,0 +1,7 @@
+torch
+transformers
+tokenizers
+sentencepiece
+kobert-transformers
+konlpy
+tweepy

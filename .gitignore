@@ -1,4 +1,6 @@
-corpus
+# Venv files
+bin
+lib
+
 __pycache__
-*.log
-result*.txt
+*.egg-info

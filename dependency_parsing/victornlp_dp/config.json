@@ -1,0 +1,94 @@
+{
+  "language": {
+    "korean": {
+      "corpus": {
+        "train": "corpus/VictorNLP_kor(ModuKMDP)_train.json",
+        "dev": "corpus/VictorNLP_kor(ModuKMDP)_dev.json",
+        "test": "corpus/VictorNLP_kor(ModuKMDP)_test.json",
+        "labels": "corpus/VictorNLP_kor(ModuKMDP)_labels.json"
+      },
+      "embedding": ["etri-korbert"],
+      "preprocessors": ["word-count", "kmdp"],
+      "parse": {
+        "head_initial": 0,
+        "head_final": 0,
+        "allow_projective": 0,
+        "beam_size": 10
+      }
+    }
+  },
+  "embedding": {
+    "pos-morph-kor": {
+      "file_directory": "victornlp_dp/victornlp_utils/embedding/data/EmbeddingPoS_kor.json",
+      "key": "pos_tag",
+      "from_pretrained": 0,
+      "embed_size": 50,
+      "train": 1,
+      "special_tokens": {
+        "unk": "<unk>",
+        "bos": "<bos>",
+        "pad": "<pad>"
+      }
+    },
+    "glove-morph-kor": {
+      "file_directory": "victornlp_dp/victornlp_utils/embedding/data/EmbeddingGloVe_kor.json",
+      "key": "joined",
+      "from_pretrained": 1,
+      "train": 0,
+      "special_tokens": {
+        "unk": "<unk>",
+        "bos": "<bos>",
+        "pad": "<BLK>"
+      }
+    },
+    "etri-korbert": {
+      "file_directory": "victornlp_dp/victornlp_utils/embedding/data/EmbeddingBERTMorph_kor",
+      "word_phrase": 0,
+      "train": 0,
+      "special_tokens": {
+        "unk": "<unk>",
+        "bos": "<bos>"
+      }
+    }
+  },
+  "parser": {
+    "left-to-right-parser": {
+      "encoder": {
+        "num_layers": 3,
+        "dropout": 0.2
+      },
+      "decoder": {
+        "num_layers": 2,
+        "dropout": 0.2
+      },
+      "hidden_size": 512,
+      "arc_size": 128,
+      "type_size": 64
+    },
+    "deep-biaff-parser": {
+      "encoder": {
+        "num_layers": 3,
+        "dropout": 0.2
+      },
+      "hidden_size": 512,
+      "arc_size": 128,
+      "type_size": 64
+    }
+  },
+  "train": {
+    "language": "korean",
+    "model": "deep-biaff-parser",
+    "loss_fn": "local-xbce",
+    "parse_fn": "mst",
+    "epoch": 100,
+    "batch_size": 64,
+    "optimizer": "adam",
+    "learning_rate": 0.001,
+    "device": "cuda:0",
+    "early_stopping": {
+      "patience": 3,
+      "eps": 0.0,
+      "maximize": 0
+    }
+  }
+}

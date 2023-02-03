@@ -1,0 +1,137 @@
+[
+    {
+        "pos_tag": "#"
+    },
+    {
+        "pos_tag": "$"
+    },
+    {
+        "pos_tag": "''"
+    },
+    {
+        "pos_tag": ","
+    },
+    {
+        "pos_tag": "-LRB-"
+    },
+    {
+        "pos_tag": "-RRB-"
+    },
+    {
+        "pos_tag": "."
+    },
+    {
+        "pos_tag": ":"
+    },
+    {
+        "pos_tag": "CC"
+    },
+    {
+        "pos_tag": "CD"
+    },
+    {
+        "pos_tag": "DT"
+    },
+    {
+        "pos_tag": "EX"
+    },
+    {
+        "pos_tag": "FW"
+    },
+    {
+        "pos_tag": "IN"
+    },
+    {
+        "pos_tag": "JJ"
+    },
+    {
+        "pos_tag": "JJR"
+    },
+    {
+        "pos_tag": "JJS"
+    },
+    {
+        "pos_tag": "LS"
+    },
+    {
+        "pos_tag": "MD"
+    },
+    {
+        "pos_tag": "NN"
+    },
+    {
+        "pos_tag": "NNP"
+    },
+    {
+        "pos_tag": "NNPS"
+    },
+    {
+        "pos_tag": "NNS"
+    },
+    {
+        "pos_tag": "PDT"
+    },
+    {
+        "pos_tag": "POS"
+    },
+    {
+        "pos_tag": "PRP"
+    },
+    {
+        "pos_tag": "PRP$"
+    },
+    {
+        "pos_tag": "RB"
+    },
+    {
+        "pos_tag": "RBR"
+    },
+    {
+        "pos_tag": "RBS"
+    },
+    {
+        "pos_tag": "RP"
+    },
+    {
+        "pos_tag": "SYM"
+    },
+    {
+        "pos_tag": "TO"
+    },
+    {
+        "pos_tag": "UH"
+    },
+    {
+        "pos_tag": "VB"
+    },
+    {
+        "pos_tag": "VBD"
+    },
+    {
+        "pos_tag": "VBG"
+    },
+    {
+        "pos_tag": "VBN"
+    },
+    {
+        "pos_tag": "VBP"
+    },
+    {
+        "pos_tag": "VBZ"
+    },
+    {
+        "pos_tag": "WDT"
+    },
+    {
+        "pos_tag": "WP"
+    },
+    {
+        "pos_tag": "WP$"
+    },
+    {
+        "pos_tag": "WRB"
+    },
+    {
+        "pos_tag": "``"
+    }
+]

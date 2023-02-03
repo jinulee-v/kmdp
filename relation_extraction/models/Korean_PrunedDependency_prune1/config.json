@@ -1,0 +1,76 @@
+{
+    "language": {
+        "korean": {
+            "corpus": {
+                "train": "corpus/VictorNLP_kor(KAISTre)_ds.json",
+                "train_dev_ratio": 0.9,
+                "test": "corpus/VictorNLP_kor(KAISTre)_golden.json",
+                "labels": "corpus/VictorNLP_kor(KAISTre)_labels.json"
+            },
+            "embedding": [
+                "glove-wp-kor",
+                "pos-wp-kor"
+            ],
+            "preprocessors": [
+                "word-count"
+            ],
+            "run": {
+                "top-k": 5
+            }
+        }
+    },
+    "embedding": {
+        "pos-wp-kor": {
+            "file_directory": "victornlp_re/victornlp_utils/embedding/data/EmbeddingPoS_kor.json",
+            "key": "pos_tag",
+            "from_pretrained": 0,
+            "embed_size": 50,
+            "train": 1,
+            "special_tokens": {
+                "unk": "<unk>",
+                "bos": "<bos>",
+                "pad": "<pad>"
+            }
+        },
+        "glove-wp-kor": {
+            "file_directory": "victornlp_re/victornlp_utils/embedding/data/EmbeddingGloVe_kor.json",
+            "key": "joined",
+            "from_pretrained": 1,
+            "train": 0,
+            "special_tokens": {
+                "unk": "<unk>",
+                "bos": "<bos>",
+                "pad": "<BLK>"
+            }
+        }
+    },
+    "model": {
+        "pruned-dependency": {
+            "prune": 1,
+            "lstm_hidden_size": 256,
+            "lstm_layers": 2,
+            "gcn_hidden_size": 256,
+            "gcn_layers": 3,
+            "relation_type_size": 160
+        }
+    },
+    "train": {
+        "language": "korean",
+        "model": "pruned-dependency",
+        "loss_fn": "nll",
+        "run_fn": "argmax",
+        "analysis_fn": "accuracy",
+        "epoch": 100,
+        "batch_size": 64,
+        "optimizer": "adam",
+        "learning_rate": 0.003,
+        "device": "cuda:0",
+        "early_stopping": {
+            "patience": 3,
+            "eps": 0.0,
+            "maximize": 0
+        },
+        "config_file": "victornlp_re/config.json",
+        "title": "20210728 13:11:09 korean pruned-dependency"
+    }
+}
