@@ -27,15 +27,16 @@ The standard tokenization policy of Korean dependency parsing is eojeol(word-phr
 
 ```
 git clone https://github.com/jinulee-v/kmdp
+cd kmdp # Current location is refered as 'root folder' from now on.
 ```
 
 2. Download corpus file from the NIKL Homepage.
 
 > Corpus files are copyrighted by NIKL, therefore I do not own rights to distribute them.
 > Download the file from the NIKL Modu corpus homepage(Dependency & Morphology).
+> This project uses only 'literal text dataset'; `NXDP*.json` and `NXMP*.json`. Discard `SXDP` and `SXMP`.
 
-Store the downloaded files within the 'corpus' folder.
-
+Store the downloaded files within the root folder.
 
 3. Install relevant packages. Using virtual environments for version control(Docker, venv, conda...) is highly recommended.
 
@@ -52,7 +53,12 @@ To repeat experiments presented within the paper, follow these steps:
 This script...
 - Converts NIKL data into our own JSON format.
 - Converts word-phrase corpora into KMDP corpora.
-After the execution, preprocessed corpora will be stored in kmdp/corpora.
+After the execution, preprocessed corpora(Modu/ModuKMDP, train/dev/test/labels) will be stored in `kmdp/corpus`.
+Also, the error log generated while converting word-phrase dependencies to morpheme dependencies will be stored in `kmdp/logs`.
+
+**FAQ**
+- This script requires at least 16GB of RAM space.
+- Make sure that `NXDP*.json` nad `NXMP*.json` file is in the root directory, and their names are unchanged.
 
 > For more usage, refer to `python kmdp/generate_kmdp.py -h`.
 

@@ -162,8 +162,8 @@ def main(args):
         'sentence': sentence,
         'environment': e.environment
       })
-      if args.interactive:
-        interactive_ui(e)
+      # if args.interactive:
+      #   interactive_ui(e)
     # except Exception as e:
     #   print(e)
     #   return None

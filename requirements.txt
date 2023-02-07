@@ -5,3 +5,4 @@ sentencepiece
 kobert-transformers
 konlpy
 tweepy
+tqdm
