@@ -46,7 +46,7 @@ _ROOT_heads = ['[ROOT]']
 
 _all_heads = _NP_heads + _VP_heads + _TP_heads + _CP_heads + _AP_heads + _DP_heads + _IP_heads + _XPN_heads + _ROOT_heads
 for head in _all_heads:
-  assert head in _labels['pos_labels'] + ['[ROOT]']
+  assert head in _labels['pos_labels'] + ['[ROOT]', 'MM']
 
 # All possible heads
 label2head = {

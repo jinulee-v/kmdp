@@ -1,7 +1,7 @@
 import json
 
 
-with open('corpus/VictorNLP_kor(Modu)_labels.json', 'r', encoding='UTF-8') as labels_file:
+with open('kmdp/corpus/VictorNLP_kor(Modu)_labels.json', 'r', encoding='UTF-8') as labels_file: # FIXME provide import path
   _labels = json.load(labels_file)
 
 ###############################################################################
@@ -30,7 +30,7 @@ _AP_heads = [
   'MAG', 'MAJ'
 ]
 
-# Adjective-like ehads
+# Adjective-like heads
 _DP_heads = [
   'MMA', 'MMD', 'MMN', 'ETM'
 ]

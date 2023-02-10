@@ -67,7 +67,7 @@ def modu_to_victornlp(modu_dp_file, modu_pos_file, train_file, dev_file, test_fi
         pos_labels.add(morph['label'])
   del modu
   gc.collect()
-  pos_labels = sorted(list(pos_labels))
+  pos_labels = sorted(list(pos_labels) + ['MM'])
 
   print("Finished processing PoS")
 
