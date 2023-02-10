@@ -44,6 +44,10 @@ Store the downloaded files within the root folder.
 pip install -r requirements.txt
 ```
 
+4. It is highly recommended to run this script on Linux environments.
+
+However, if it is not the case, copy `victornlp_utils` folder to `dependency_parsing/victornlp_dp`, ... (Refer to 1_preprocess.sh for exact code.)
+
 ## Instructions
 
 To repeat experiments presented within the paper, follow these steps:

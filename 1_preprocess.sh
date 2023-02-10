@@ -12,6 +12,6 @@ python3 kmdp/kmdp_labels.py --src_file "kmdp/corpus/VictorNLP_kor(ModuKMDP)_trai
 cp kmdp/corpus/* dependency_parsing/corpus
 
 # Copy victornlp files if your OS is not Linux
-cp -r victornlp_utils dependency_parsing/victornlp_dp
-cp -r victornlp_utils relation_extraction/victornlp_re
-cp -r victornlp_utils sem_text_sim/victornlp_sts
+# cp -r victornlp_utils dependency_parsing/victornlp_dp
+# cp -r victornlp_utils relation_extraction/victornlp_re
+# cp -r victornlp_utils sem_text_sim/victornlp_sts
